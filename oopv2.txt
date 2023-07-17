@@ -1,0 +1,198 @@
+using System;
+using System.Collections.Generic;
+
+namespace OOPV1
+{
+    // Interface defining common operations for bank accounts
+    public interface IBankAccount
+    {
+        void Deposit(int amount);
+        void Withdraw(int amount);
+    }
+
+    // Abstract class serving as a base for bank accounts
+    public abstract class BankAccount : IBankAccount
+    {
+        // Protected properties accessible to derived classes
+        protected string AccountNumber { get; }
+        protected string AccountName { get; set; }
+        protected int AccountBalance { get; set; }
+
+        // Constructor to initialize account properties
+        public BankAccount(string accountNumber, string accountName, int accountBalance)
+        {
+            AccountNumber = accountNumber;
+            AccountName = accountName;
+            AccountBalance = accountBalance;
+        }
+
+        // Virtual methods that can be overridden by derived classes
+        public virtual void Deposit(int amount)
+        {
+            AccountBalance += amount;
+        }
+
+        public virtual void Withdraw(int amount)
+        {
+            AccountBalance -= amount;
+        }
+
+        // Abstract method to be implemented by derived classes
+        public abstract void DisplayAccountInfo();
+    }
+
+    // Derived class representing a savings account
+    public class SavingsAccount : BankAccount
+    {
+        // Additional property specific to savings accounts
+        public int InterestRate { get; set; }
+
+        // Constructor calling the base class constructor
+        public SavingsAccount(string accountNumber, string accountName, int accountBalance) : base(accountNumber, accountName, accountBalance)
+        {
+        }
+
+        // Overriding the base class's Deposit method with additional interest calculation
+        public override void Deposit(int amount)
+        {
+            AccountBalance = amount + amount * InterestRate / 100;
+        }
+
+        // Implementing the abstract DisplayAccountInfo method
+        public override void DisplayAccountInfo()
+        {
+            Console.WriteLine($"Account Name: {AccountName}\nAccount Balance: {AccountBalance}\nAccount Number: {AccountNumber}\nInterest rate: {InterestRate}");
+        }
+    }
+
+    // Derived class representing a checking account
+    public class CheckingAccount : BankAccount
+    {
+        // Constructor calling the base class constructor
+        public CheckingAccount(string accountNumber, string accountName, int accountBalance) : base(accountNumber, accountName, accountBalance)
+        {
+        }
+
+        // Overriding the base class's Withdraw method to handle insufficient funds
+        public override void Withdraw(int amount)
+        {
+            if (amount <= AccountBalance)
+            {
+                AccountBalance -= amount;
+            }
+            else
+            {
+                Console.WriteLine("Insufficient funds. Cannot withdraw.");
+            }
+        }
+
+        // Implementing the abstract DisplayAccountInfo method
+        public override void DisplayAccountInfo()
+        {
+            Console.WriteLine($"Account Name: {AccountName}\nAccount Balance: {AccountBalance}\nAccount Number: {AccountNumber}");
+        }
+    }
+
+    // Class representing a bank
+    public class Bank
+    {
+        // List to hold bank accounts
+        public List<BankAccount> Accounts { get; set; }
+
+        // Constructor to initialize the list
+        public Bank()
+        {
+            Accounts = new List<BankAccount>();
+        }
+
+        // Method to add a bank account to the list
+        public void AddAccount(BankAccount account)
+        {
+            Accounts.Add(account);
+        }
+
+        // Method to deposit an amount to a specific account
+        public void DepositToAccount(string accountNumber, int amount)
+        {
+            BankAccount account = FindAccountByNumber(accountNumber);
+            if (account != null)
+            {
+                account.Deposit(amount);
+            }
+            else
+            {
+                Console.WriteLine("Account not found.");
+            }
+        }
+
+        // Method to withdraw an amount from a specific account
+        public void WithdrawFromAccount(string accountNumber, int amount)
+        {
+            BankAccount account = FindAccountByNumber(accountNumber);
+            if (account != null)
+            {
+                account.Withdraw(amount);
+            }
+            else
+            {
+                Console.WriteLine("Account not found.");
+            }
+        }
+
+        // Helper method to find an account by its account number
+        private BankAccount FindAccountByNumber(string accountNumber)
+        {
+            foreach (var account in Accounts)
+            {
+                if (account.AccountNumber == accountNumber)
+                {
+                    return account;
+                }
+            }
+            return null;
+        }
+    }
+
+    // Entry point of the program
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // Create a Bank instance
+            Bank bank = new Bank();
+
+            // Create a savings account and set its properties
+            SavingsAccount savingsAccount = new SavingsAccount("SA001", "John Doe", 1000);
+            savingsAccount.InterestRate = 5;
+
+            // Create a checking account and set its properties
+            CheckingAccount checkingAccount = new CheckingAccount("CA001", "Jane Smith", 60000);
+
+            // Add the accounts to the bank
+            bank.AddAccount(savingsAccount);
+            bank.AddAccount(checkingAccount);
+
+            // Display initial account information
+            Console.WriteLine("Account Information:");
+            foreach (var account in bank.Accounts)
+            {
+                account.DisplayAccountInfo();
+                Console.WriteLine();
+            }
+
+            // Perform some operations on the accounts
+            bank.DepositToAccount("SA001", 500);
+            bank.WithdrawFromAccount("CA001", 200);
+            bank.DepositToAccount("SA001", 200);
+            bank.WithdrawFromAccount("CA001", 800);
+
+            // Display updated account information
+            Console.WriteLine("Updated Account Information:");
+            foreach (var account in bank.Accounts)
+            {
+                account.DisplayAccountInfo();
+                Console.WriteLine();
+            }
+        }
+    }
+}
